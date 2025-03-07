@@ -1,3 +1,5 @@
+//2020142149 김사윤
+
 const canvas = document.getElementById('glCanvas');
 const gl = canvas.getContext('webgl2');
 
@@ -17,7 +19,7 @@ render(250, 250);
 // 디버깅용 로그
 console.log('Initialize Success');
 
-// Scissors를 이용해서 Canvas를 나눈다 <-- 허용되나?
+// Scissors를 이용해서 Canvas를 나눈다
 function colorBox(x, y, w, h, c1, c2, c3, opac) {
     gl.enable(gl.SCISSOR_TEST);
     gl.viewport(x, y, w, h);
