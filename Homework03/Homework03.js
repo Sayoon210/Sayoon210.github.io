@@ -328,7 +328,7 @@ function render() {
                     }
                 } else { 
                     console.log("NO DOT but D>0");
-                    updateText(textOverlay3, ""); 
+                    updateText(textOverlay3, "No Intersection Points."); 
                 };
 
 
