@@ -1,20 +1,14 @@
 /*-------------------------------------------------------------------------
-08_Transformation.js
 
-canvas의 중심에 한 edge의 길이가 0.3인 정사각형을 그리고, 
-이를 크기 변환 (scaling), 회전 (rotation), 이동 (translation) 하는 예제임.
-    T는 x, y 방향 모두 +0.5 만큼 translation
-    R은 원점을 중심으로 2초당 1회전의 속도로 rotate
-    S는 x, y 방향 모두 0.3배로 scale
-이라 할 때, 
-    keyboard 1은 TRS 순서로 적용
-    keyboard 2는 TSR 순서로 적용
-    keyboard 3은 RTS 순서로 적용
-    keyboard 4는 RST 순서로 적용
-    keyboard 5는 STR 순서로 적용
-    keyboard 6은 SRT 순서로 적용
-    keyboard 7은 원래 위치로 돌아옴
+Homework 04
+
+<21조>
+2021119047 한민석
+2020142149 김사윤
+2021147557 이재근
+
 ---------------------------------------------------------------------------*/
+
 import { resizeAspectRatio, setupText, updateText, Axes } from '../util/util.js';
 import { Shader, readShaderFile } from '../util/shader.js';
 
@@ -25,11 +19,12 @@ let shader;
 let axesVAO;
 let cubeVAO;
 let finalTransform;
+let finalTransformEarth;
 let rotationAngle = 0;
 //let currentTransformType = null;
 let isAnimating = true;
 let lastTime = 0;
-let textOverlay;
+// let textOverlay;
 
 document.addEventListener('DOMContentLoaded', () => {
     if (isInitialized) {
@@ -69,8 +64,8 @@ function setupAxesBuffers(shader) {
     gl.bindVertexArray(axesVAO);
 
     const axesVertices = new Float32Array([
-        -0.8, 0.0, 0.8, 0.0,  // x축
-        0.0, -0.8, 0.0, 0.8   // y축
+        -1.0, 0.0, 1.0, 0.0,  // x축
+        0.0, -1.0, 0.0, 1.0   // y축
     ]);
 
     const axesColors = new Float32Array([
@@ -131,43 +126,10 @@ function setupCubeBuffers(shader) {
     gl.bindVertexArray(null);
 }
 
-// function setupKeyboardEvents() {
-//     let key;
-//     document.addEventListener('keydown', (event) => {
-//         key = event.key;
-//         switch (key) {
-//             case '1': currentTransformType = 'TRS'; isAnimating = true; break;
-//             case '2': currentTransformType = 'TSR'; isAnimating = true; break;
-//             case '3': currentTransformType = 'RTS'; isAnimating = true; break;
-//             case '4': currentTransformType = 'RST'; isAnimating = true; break;
-//             case '5': currentTransformType = 'STR'; isAnimating = true; break;
-//             case '6': currentTransformType = 'SRT'; isAnimating = true; break;
-//             case '7':
-//                 currentTransformType = null;
-//                 isAnimating = false;
-//                 rotationAngle = 0;
-//                 finalTransform = mat4.create();
-//                 break;
-//         }
-//         if (currentTransformType) {
-//             updateText(textOverlay, event.key + ': ' + currentTransformType);
-//         } else {
-//             updateText(textOverlay, 'NO TRANSFORMA1TION');
-//         }
-//     });
-// }
 
-// function getTransformMatrices() {
-//     const T = mat4.create();
-//     const R = mat4.create();
-//     const S = mat4.create();
-
-//     mat4.translate(T, T, [0.5, 0.5, 0]);
-//     mat4.rotate(R, R, rotationAngle, [0, 0, 1]);
-//     mat4.scale(S, S, [0.3, 0.3, 1]);
-
-//     return { T, R, S };
-// }
+///////////////////////////////////////////////////////////
+///////모든 Matrix는 원점 기준으로 생각해서 적용함!!!/////////
+///////////////////////////////////////////////////////////
 
 function applyTransformSun() {
     finalTransform = mat4.create();
@@ -175,7 +137,7 @@ function applyTransformSun() {
     const R = mat4.create();
     mat4.scale(S, S, [0.2, 0.2, 1]);
     mat4.multiply(finalTransform, S, finalTransform);
-    mat4.rotate(R, R, rotationAngle/4, [0, 0, 1]);
+    mat4.rotate(R, R, rotationAngle / 4, [0, 0, 1]);
     mat4.multiply(finalTransform, R, finalTransform);
 }
 
@@ -190,7 +152,7 @@ function applyTransformEarth() {
     mat4.multiply(finalTransform, R_s, finalTransform);
     mat4.scale(S, S, [0.1, 0.1, 1]);
     mat4.multiply(finalTransform, S, finalTransform);
-    mat4.translate(T, T, [0.7, 0.0, 1]);
+    mat4.translate(T, T, [0.7, 0.0, 0.0]);
     mat4.multiply(finalTransform, T, finalTransform);
     mat4.rotate(R_a, R_a, rotationAngle / 6, [0, 0, 1]);
     mat4.multiply(finalTransform, R_a, finalTransform);
@@ -200,13 +162,23 @@ function applyTransformMoon() {
     finalTransform = mat4.create();
     const S = mat4.create();
     const T = mat4.create();
-    const R = mat4.create();
-    mat4.scale(S, S, [0.5, 0.5, 1]);
+    const R_s = mat4.create();
+    const R_a = mat4.create();
+    const R_e = mat4.create();
+
+    mat4.rotate(R_s, R_s, rotationAngle, [0, 0, 1]);
+    mat4.multiply(finalTransform, R_s, finalTransform);
+    mat4.scale(S, S, [0.05, 0.05, 1]);
     mat4.multiply(finalTransform, S, finalTransform);
-    mat4.translate(T, T, [0.2, 0.0, 1]);
+    mat4.translate(T, T, [0.2, 0.0, 0]);
     mat4.multiply(finalTransform, T, finalTransform);
-    mat4.rotate(R, R, rotationAngle, [0, 0, 1]);
-    mat4.multiply(finalTransform, R, finalTransform);
+    mat4.rotate(R_a, R_a, rotationAngle * 2, [0, 0, 1]);
+    mat4.multiply(finalTransform, R_a, finalTransform);
+    // follow earth
+    mat4.translate(T, T, [0.5, 0, 0]);
+    mat4.multiply(finalTransform, T, finalTransform);
+    mat4.rotate(R_e, R_e, rotationAngle / 6, [0, 0, 1]);
+    mat4.multiply(finalTransform, R_e, finalTransform);
 }
 
 function render() {
@@ -241,8 +213,9 @@ function render() {
     gl.drawArrays(gl.LINES, 0, 4);
 
 
-
-    // Sun
+    ///////////////
+    ///// SUN /////
+    ///////////////
     applyTransformSun();
     shader.setMat4("u_transform", finalTransform);
     gl.bindVertexArray(cubeVAO);
@@ -253,12 +226,15 @@ function render() {
     shader.setAttribPointer("a_color", 4, gl.FLOAT, false, 0, 0);
     ///////// bind 끝난 이후에 draw를 수행 /////////
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
-    gl.bindVertexArray(null);
 
 
-    // Earth
+
+    ///////////////
+    //// Earth ////
+    ///////////////
     applyTransformEarth();
     shader.setMat4("u_transform", finalTransform);
+    finalTransformEarth = finalTransform;
     gl.bindVertexArray(cubeVAO);
     ///////// bind 이후에 버퍼를 수정 /////////
     const colorBuffer2 = gl.createBuffer();
@@ -268,11 +244,20 @@ function render() {
     ///////// bind 끝난 이후에 draw를 수행 /////////
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 
-    // applyTransformMoon();
 
-    // shader.setMat4("u_transform", finalTransform);
-    // gl.bindVertexArray(cubeVAO);
-    // gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+    ///////////////
+    //// Moon  ////
+    ///////////////
+    applyTransformMoon();
+    shader.setMat4("u_transform", finalTransform);
+    gl.bindVertexArray(cubeVAO);
+    ///////// bind 이후에 버퍼를 수정 /////////
+    const colorBuffer3 = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer3);
+    gl.bufferData(gl.ARRAY_BUFFER, cubeColors3, gl.STATIC_DRAW);
+    shader.setAttribPointer("a_color", 4, gl.FLOAT, false, 0, 0);
+    ///////// bind 끝난 이후에 draw를 수행 /////////
+    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 }
 
 // 이미 설정을 다 해놓고 렌더링링
@@ -283,7 +268,7 @@ function animate(currentTime) {
     lastTime = currentTime;
     if (isAnimating) {
         rotationAngle += Math.PI * deltaTime;
-        console.log('rotate: ' + deltaTime);
+        //console.log('rotate: ' + deltaTime);
     }
     render();
 
@@ -307,8 +292,8 @@ async function main() {
         shader = await initShader();
         setupAxesBuffers(shader);
         setupCubeBuffers(shader);
-        textOverlay = setupText(canvas, 'NO TRANSFORMATION', 1);
-        setupText(canvas, 'press 1~7 to apply different order of transformations', 2);
+        // textOverlay = setupText(canvas, 'NO TRANSFORMATION', 1);
+        // setupText(canvas, 'press 1~7 to apply different order of transformations', 2);
         // setupKeyboardEvents();
         shader.use();
         rotationAngle = 0;
