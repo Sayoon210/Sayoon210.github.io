@@ -105,24 +105,10 @@ function setupCubeBuffers(shader) {
     ]);
 
     const cubeColors = new Float32Array([
-        1.0, 1.0, 0.0, 1.0,  // 빨간색
-        1.0, 0.0, 1.0, 1.0,
+        1.0, 0.0, 0.0, 1.0,  // 빨간색
+        1.0, 0.0, 0.0, 1.0,
         1.0, 0.0, 0.0, 1.0,
         1.0, 0.0, 0.0, 1.0
-    ]);
-
-    const cubeColors1 = new Float32Array([
-        1.0, 1.0, 0.0, 1.0,  // 빨간색
-        1.0, 1.0, 0.0, 1.0,
-        1.0, 1.0, 0.0, 1.0,
-        1.0, 1.0, 0.0, 1.0
-    ]);
-
-    const cubeColors2 = new Float32Array([
-        1.0, 0.0, 1.0, 1.0,  // 빨간색
-        1.0, 0.0, 1.0, 1.0,
-        1.0, 0.0, 1.0, 1.0,
-        1.0, 0.0, 1.0, 1.0
     ]);
 
     cubeVAO = gl.createVertexArray();
@@ -183,77 +169,124 @@ function setupCubeBuffers(shader) {
 //     return { T, R, S };
 // }
 
-function applyTransform() {
+function applyTransformSun() {
     finalTransform = mat4.create();
     const S = mat4.create();
+    const R = mat4.create();
+    mat4.scale(S, S, [0.2, 0.2, 1]);
+    mat4.multiply(finalTransform, S, finalTransform);
+    mat4.rotate(R, R, rotationAngle/4, [0, 0, 1]);
+    mat4.multiply(finalTransform, R, finalTransform);
+}
+
+function applyTransformEarth() {
+    finalTransform = mat4.create();
+    const S = mat4.create();
+    const T = mat4.create();
+    const R_s = mat4.create();
+    const R_a = mat4.create();
+
+    mat4.rotate(R_s, R_s, rotationAngle, [0, 0, 1]);
+    mat4.multiply(finalTransform, R_s, finalTransform);
+    mat4.scale(S, S, [0.1, 0.1, 1]);
+    mat4.multiply(finalTransform, S, finalTransform);
+    mat4.translate(T, T, [0.7, 0.0, 1]);
+    mat4.multiply(finalTransform, T, finalTransform);
+    mat4.rotate(R_a, R_a, rotationAngle / 6, [0, 0, 1]);
+    mat4.multiply(finalTransform, R_a, finalTransform);
+}
+
+function applyTransformMoon() {
+    finalTransform = mat4.create();
+    const S = mat4.create();
+    const T = mat4.create();
+    const R = mat4.create();
     mat4.scale(S, S, [0.5, 0.5, 1]);
     mat4.multiply(finalTransform, S, finalTransform);
-    // const { T, R, S } = getTransformMatrices();
-
-    // const transformOrder = {
-    //     'TRS': [T, R, S],
-    //     'TSR': [T, S, R],
-    //     'RTS': [R, T, S],
-    //     'RST': [R, S, T],
-    //     'STR': [S, T, R],
-    //     'SRT': [S, R, T]
-    // };
-
-    // /*
-    //   array.forEach(...) : array 각 element에 대해 반복
-    // */
-    // if (transformOrder[type]) {
-    //     transformOrder[type].forEach(matrix => {
-    //         mat4.multiply(finalTransform, matrix, finalTransform);
-    //     });
-    // }
+    mat4.translate(T, T, [0.2, 0.0, 1]);
+    mat4.multiply(finalTransform, T, finalTransform);
+    mat4.rotate(R, R, rotationAngle, [0, 0, 1]);
+    mat4.multiply(finalTransform, R, finalTransform);
 }
 
 function render() {
-    console.log("123123123123");
+    const cubeColors1 = new Float32Array([
+        1.0, 0.0, 0.0, 1.0,  // 빨간색
+        1.0, 0.0, 0.0, 1.0,
+        1.0, 0.0, 0.0, 1.0,
+        1.0, 0.0, 0.0, 1.0
+    ]);
+
+    const cubeColors2 = new Float32Array([
+        0.0, 0.0, 1.0, 1.0,  // blue
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0,
+        0.0, 0.0, 1.0, 1.0
+    ]);
+
+    const cubeColors3 = new Float32Array([
+        1.0, 1.0, 0.0, 1.0,  // yellow
+        1.0, 1.0, 0.0, 1.0,
+        1.0, 1.0, 0.0, 1.0,
+        1.0, 1.0, 0.0, 1.0
+    ]);
 
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     shader.use();
 
-    applyTransform();
-
     // 축 그리기
     shader.setMat4("u_transform", mat4.create());
-    shader.setVec4("b_color", [1.0, 1.0, 0.0, 1.0]);
     gl.bindVertexArray(axesVAO);
     gl.drawArrays(gl.LINES, 0, 4);
 
-    // 정사각형 그리기
-    shader.setMat4("u_transform", finalTransform);
-    //shader.setVec4("b_color", [1.0, 1.0, 0.0, 1.0]);
-    gl.bindVertexArray(cubeVAO);
-    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 
-    applyTransform();
 
-    shader.setMat4("u_transform", finalTransform);
-    //shader.setVec4("b_color", [1.0, 1.0, 0.0, 1.0]);
-    gl.bindVertexArray(cubeVAO);
-    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
-
-    applyTransform();
-
+    // Sun
+    applyTransformSun();
     shader.setMat4("u_transform", finalTransform);
     gl.bindVertexArray(cubeVAO);
+    ///////// bind 이후에 버퍼를 수정 /////////
+    const colorBuffer1 = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer1);
+    gl.bufferData(gl.ARRAY_BUFFER, cubeColors1, gl.STATIC_DRAW);
+    shader.setAttribPointer("a_color", 4, gl.FLOAT, false, 0, 0);
+    ///////// bind 끝난 이후에 draw를 수행 /////////
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+    gl.bindVertexArray(null);
+
+
+    // Earth
+    applyTransformEarth();
+    shader.setMat4("u_transform", finalTransform);
+    gl.bindVertexArray(cubeVAO);
+    ///////// bind 이후에 버퍼를 수정 /////////
+    const colorBuffer2 = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer2);
+    gl.bufferData(gl.ARRAY_BUFFER, cubeColors2, gl.STATIC_DRAW);
+    shader.setAttribPointer("a_color", 4, gl.FLOAT, false, 0, 0);
+    ///////// bind 끝난 이후에 draw를 수행 /////////
+    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+
+    // applyTransformMoon();
+
+    // shader.setMat4("u_transform", finalTransform);
+    // gl.bindVertexArray(cubeVAO);
+    // gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 }
 
 // 이미 설정을 다 해놓고 렌더링링
 function animate(currentTime) {
-    if (!lastTime) lastTime = currentTime;
-    const deltaTime = (currentTime - lastTime) / 1000;
+    if (!lastTime) { lastTime = currentTime; rotationAngle = 0; } // if lastTime == 0
+    // deltaTime: 이전 frame에서부터의 elapsed time (in seconds)
+    let deltaTime = (currentTime - lastTime) / 1000;
     lastTime = currentTime;
-
     if (isAnimating) {
-        rotationAngle += Math.PI * 0.5 * deltaTime;
+        rotationAngle += Math.PI * deltaTime;
+        console.log('rotate: ' + deltaTime);
     }
     render();
+
     requestAnimationFrame(animate);
 }
 
@@ -278,6 +311,7 @@ async function main() {
         setupText(canvas, 'press 1~7 to apply different order of transformations', 2);
         // setupKeyboardEvents();
         shader.use();
+        rotationAngle = 0;
         animate();
         return true;
     } catch (error) {
