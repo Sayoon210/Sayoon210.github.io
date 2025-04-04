@@ -190,10 +190,10 @@ function render() {
     ]);
 
     const cubeColors2 = new Float32Array([
-        0.0, 0.0, 1.0, 1.0,  // blue
-        0.0, 0.0, 1.0, 1.0,
-        0.0, 0.0, 1.0, 1.0,
-        0.0, 0.0, 1.0, 1.0
+        0.0, 1.0, 1.0, 1.0,  // cyan
+        0.0, 1.0, 1.0, 1.0,
+        0.0, 1.0, 1.0, 1.0,
+        0.0, 1.0, 1.0, 1.0
     ]);
 
     const cubeColors3 = new Float32Array([
