@@ -1,9 +1,11 @@
 /*-----------------------------------------------------------------------------------
-13_Texture.js
+Homework06
 
-- Viewing a 3D unit cube at origin with perspective projection
-- Rotating the cube by ArcBall interface (by left mouse button dragging)
-- Applying image texture (../images/textures/woodWall2.png) to each face of the cube
+<21조>
+2020142149 김사윤
+2021119047 한민석
+
+2021147557 이재근
 -----------------------------------------------------------------------------------*/
 
 import { resizeAspectRatio, Axes } from '../util/util.js';
