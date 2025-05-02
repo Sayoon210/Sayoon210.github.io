@@ -2,6 +2,8 @@
 
 precision highp float;
 
+in vec3 lightingColor;
+
 in vec3 fragPos;  
 in vec3 normal;  
 out vec4 FragColor;
@@ -22,6 +24,9 @@ struct Light {
 uniform Material material;
 uniform Light light;
 uniform vec3 u_viewPos;
+
+// 셰이더 변경용 변수
+uniform int uMode;
 
 void main() {
     // ambient
@@ -46,5 +51,8 @@ void main() {
     vec3 specular = light.specular * (spec * material.specular);  
         
     vec3 result = ambient + diffuse + specular;
-    FragColor = vec4(result, 1.0);
+
+    // key change block
+    if (uMode == 1) FragColor = vec4(result, 1.0);
+    else FragColor = vec4(lightingColor, 1.0);
 }

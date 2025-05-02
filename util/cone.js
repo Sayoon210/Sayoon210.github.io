@@ -25,7 +25,6 @@ export class Cone {
         const positions = [];
         const normals   = [];
         const colors    = [];
-        const texCoords = [];
         const indices   = [];
 
         // 옵션에서 color가 있으면 사용, 없으면 기본값 사용
@@ -37,24 +36,9 @@ export class Cone {
         //  - bot1: angle1, y= -0.5
         //  - bot0: angle0, y= -0.5
         //
-        // 인덱스는 (0,1,2), (2,3,0)로 두 삼각형을 구성.
-        // 이 순서가 외부에서 볼 때 CCW가 되도록 정렬합니다.
         for (let i = 0; i < segments; i++) {
             const angle0 = i * angleStep;
             const angle1 = (i + 1) * angleStep;
-
-            // // 현재 세그먼트의 상단 (y=+0.5)
-            // const x0_top = radius * Math.cos(angle0);
-            // const z0_top = radius * Math.sin(angle0);
-            // const x1_top = radius * Math.cos(angle1);
-            // const z1_top = radius * Math.sin(angle1);
-
-            // // 현재 세그먼트의 하단 (y=-0.5)
-            // // (원기둥이므로 x,z는 동일, y만 -0.5)
-            // const x0_bot = x0_top;
-            // const z0_bot = z0_top;
-            // const x1_bot = x1_top;
-            // const z1_bot = z1_top;
 
             const x_top = 0
             const z_top = 0
@@ -63,7 +47,7 @@ export class Cone {
             const x1_bot = radius * Math.cos(angle1);
             const z1_bot = radius * Math.sin(angle1);
 
-            // 각 face의 3개 정점 (CCW) 9개의 값값
+            // 각 face의 3개 정점 (CCW) 9개의 값
             positions.push(
                 // top0
                 x_top,  halfH, z_top,
@@ -76,9 +60,9 @@ export class Cone {
             // flat shading: 한 face(사각형)마다 동일한 법선.
             // face의 중앙 각도(midAngle) 기준으로 바깥쪽을 가리키는 (cos, 0, sin)
             const midAngle = angle0 + angleStep * 0.5;
-            const nx = Math.cos(midAngle) * (5/6)**0.5;
-            const ny = (1/6)**0.5;
-            const nz = Math.sin(midAngle) * (5/6)**0.5;
+            const nx = - (z0_bot - z1_bot);
+            const ny =  (z0_bot*x1_bot - x0_bot*z1_bot);
+            const nz = - (x1_bot - x0_bot);
 
             // 이 사각형의 3개 정점에 동일한 법선 지정
             for (let k = 0; k < 3; k++) {
@@ -94,21 +78,6 @@ export class Cone {
                     colorOption[3]
                 );
             }
-
-            // // 텍스처 좌표 (단순 cylindrical mapping)
-            // // u: [0..1], v: y=+0.5 -> 1, y=-0.5 -> 0
-            // const u0 = i / segments;       // angle0 비율
-            // const u1 = (i + 1) / segments; // angle1 비율
-            // texCoords.push(
-            //     // top0
-            //     u0, 1,
-            //     // top1
-            //     u1, 1,
-            //     // bot1
-            //     u1, 0,
-            //     // bot0
-            //     u0, 0
-            // );
 
             // 인덱스 (두 삼각형)
             // 이번 face가 i번째면, 정점 baseIndex = i*4
@@ -143,13 +112,23 @@ export class Cone {
         // 새로 계산된 스무스 노말을 담을 버퍼 (vertices와 동일 크기)
         this.vertexNormals = new Float32Array(this.vertices.length);
 
+        // // 각 face의 3개 정점 (CCW) 9개의 값
+        // positions.push(
+        //     // top0
+        //     x_top,  halfH, z_top,
+        //     // bot1
+        //     x1_bot, -halfH, z1_bot,
+        //     // bot0
+        //     x0_bot, -halfH, z0_bot
+        // );
+
         for (let i = 0; i < vCount; i++) {
             const x = this.vertices[i * 3 + 0];
             const y = this.vertices[i * 3 + 1]; // 여기서는 y는 노말 계산에 사용 X
             const z = this.vertices[i * 3 + 2];
 
             // y축에 수직 -> (x, y, z)를 정규화
-            const len = 1;//(6/5)**0.5;//Math.sqrt(x * x + z * z + y * y);
+            const len = Math.sqrt(x * x + z * z + y * y);//(6/5)**0.5;//Math.sqrt(x * x + z * z + y * y);
             // (len == 0)이 되는 경우는 없지만, 혹시 대비
             if (len > 0) {
                 this.vertexNormals[i * 3 + 0] = x / len;

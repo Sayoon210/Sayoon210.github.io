@@ -1,20 +1,16 @@
-/*--------------------------------------------------------------------------------
-18_SmoothShading.js
+/*-------------------------------------------------------------------------
+17_GouraudShading.js
 
-- Viewing a 3D unit cylinder at origin with perspective projection
-- Rotating the cylinder by ArcBall interface (by left mouse button dragging)
-- Keyboard controls:
-    - 'a' to switch between camera and model rotation modes in ArcBall interface
-    - 'r' to reset arcball
-    - 's' to switch to smooth shading
-    - 'f' to switch to flat shading
-- Applying Diffuse & Specular reflection using Flat/Smooth shading to the cylinder
-----------------------------------------------------------------------------------*/
+- Viewing a 3D unit cube at origin with perspective projection
+- Rotating the cube by ArcBall interface (by left mouse button dragging)
+- press key 'a' to switch between camera and model rotation modes in ArcBall interface
+- Applying Specular reflection using Gouraud shading to the cube
+---------------------------------------------------------------------------*/
 import { resizeAspectRatio, setupText, updateText, Axes } from '../util/util.js';
 import { Shader, readShaderFile } from '../util/shader.js';
 import { Cube } from '../util/cube.js';
-import { Arcball } from '../util/arcball.js';
 import { Cone } from '../util/cone.js';
+import { Arcball } from '../util/arcball.js';
 
 const canvas = document.getElementById('glCanvas');
 const gl = canvas.getContext('webgl2');
@@ -33,9 +29,9 @@ let projMatrix = mat4.create();
 let modelMatrix = mat4.create();
 let lampModelMatrix = mat4.create();
 let arcBallMode = 'CAMERA';     // 'CAMERA' or 'MODEL'
-let shadingMode = 'SMOOTH';       // 'FLAT' or 'SMOOTH'
+let shadingMode = 'FLAT';       // 'FLAT' or 'SMOOTH'
 
-const cylinder = new Cone(gl, 32);
+const cube = new Cone(gl, 32);
 const lamp = new Cube(gl);
 const axes = new Axes(gl, 1.5); // create an Axes object with the length of axis 1.5
 
@@ -82,15 +78,15 @@ function setupKeyboardEvents() {
             updateText(textOverlay, "arcball mode: " + arcBallMode);
         }
         else if (event.key == 's') {
-            cylinder.copyVertexNormalsToNormals();
-            cylinder.updateNormals();
+            cube.copyVertexNormalsToNormals();
+            cube.updateNormals();
             shadingMode = 'SMOOTH';
             updateText(textOverlay2, "shading mode: " + shadingMode);
             render();
         }
         else if (event.key == 'f') {
-            cylinder.copyFaceNormalsToNormals();
-            cylinder.updateNormals();
+            cube.copyFaceNormalsToNormals();
+            cube.updateNormals();
             shadingMode = 'FLAT';
             updateText(textOverlay2, "shading mode: " + shadingMode);
             render();
@@ -109,6 +105,10 @@ function initWebGL() {
     resizeAspectRatio(gl, canvas);
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.7, 0.8, 0.9, 1.0);
+
+    // cube의 바깥쪽 face만 rendering 되도록 함
+    //gl.enable(gl.CULL_FACE);
+    //gl.cullFace(gl.BACK);
     
     return true;
 }
@@ -139,12 +139,12 @@ function render() {
         viewMatrix = arcball.getViewCamDistanceMatrix();
     }
 
-    // drawing the cylinder
-    shader.use();  // using the cylinder's shader
+    // drawing the cube
+    shader.use();  // using the cube's shader
     shader.setMat4('u_model', modelMatrix);
     shader.setMat4('u_view', viewMatrix);
     shader.setVec3('u_viewPos', cameraPos);
-    cylinder.draw(shader);
+    cube.draw(shader);
 
     // drawing the lamp
     lampShader.use();
@@ -219,4 +219,3 @@ async function main() {
         return false;
     }
 }
-
