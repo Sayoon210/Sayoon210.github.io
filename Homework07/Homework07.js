@@ -224,15 +224,15 @@ async function main() {
         mat4.scale(lampModelMatrix, lampModelMatrix, lightSize);
         lampShader.setMat4('u_model', lampModelMatrix);
 
-        setupText(canvas, "Smooth Shading", 1);
+        setupText(canvas, "Cone with Lighting", 1);
         textOverlay2 = setupText(canvas, "arcball mode: " + arcBallMode, 2);
         textOverlay3 = setupText(canvas, "shading mode: " + shadingMode + ' (' + renderingMode + ')', 3);
         setupText(canvas, "press 'a' to change arcball mode", 4);
         setupText(canvas, "press 'r' to reset arcball", 5);
         setupText(canvas, "press 's' to switch to smooth shading", 6);
         setupText(canvas, "press 'f' to switch to flat shading", 7);
-        setupText(canvas, "press 'g' to switch to Gouraud rendering", 8);
-        setupText(canvas, "press 'p' to switch to Phong rendering", 9);
+        setupText(canvas, "press 'g' to switch to Gouraud shading", 8);
+        setupText(canvas, "press 'p' to switch to Phong shading", 9);
         setupKeyboardEvents();
 
         // call the render function the first time for animation
