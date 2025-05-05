@@ -37,7 +37,7 @@ let projMatrix = mat4.create();
 let modelMatrix = mat4.create();
 let lampModelMatrix = mat4.create();
 let arcBallMode = 'CAMERA';     // 'CAMERA' or 'MODEL'
-let shadingMode = 'SMOOTH';       // 'FLAT' or 'SMOOTH'
+let shadingMode = 'FLAT';       // 'FLAT' or 'SMOOTH'
 let renderingMode = 'PHONG';
 
 const cylinder = new Cone(gl, 32);
@@ -45,7 +45,7 @@ const lamp = new Cube(gl);
 const axes = new Axes(gl, 1.5); // create an Axes object with the length of axis 1.5
 
 const cameraPos = vec3.fromValues(0, 0, 3);
-const lightPos = vec3.fromValues(1.0, 0.7, 1.0);
+const lightPos = vec3.fromValues(1.0, -0.2, 1.0);
 const lightSize = vec3.fromValues(0.1, 0.1, 0.1);
 
 // Arcball object: initial distance 5.0, rotation sensitivity 2.0, zoom sensitivity 0.0005
@@ -182,7 +182,7 @@ function render() {
     lamp.draw(lampShader);
 
     // drawing the axes (using the axes's shader: see util.js)
-    //axes.draw(viewM)atrix, projMatrix);
+    axes.draw(viewMatrix, projMatrix);
 
     // call the render function the next time for animation
     requestAnimationFrame(render);

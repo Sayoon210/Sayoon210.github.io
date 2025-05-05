@@ -2,8 +2,9 @@
 
 precision highp float;
 
-in vec3 lightingColor;
+flat in vec3 lightingColor;
 
+in vec3 normView; // test
 in vec3 fragPos;  
 in vec3 normal;  
 out vec4 FragColor;
@@ -29,30 +30,36 @@ uniform vec3 u_viewPos;
 uniform int uMode;
 
 void main() {
-    // ambient
-    vec3 rgb = material.diffuse;
-    vec3 ambient = light.ambient * rgb;
-  	
-    // diffuse 
-    vec3 norm = normalize(normal);
-    vec3 lightDir = normalize(light.position - fragPos);
-    float dotNormLight = dot(norm, lightDir);
-    float diff = max(dotNormLight, 0.0);
-    vec3 diffuse = light.diffuse * diff * rgb;  
-    
-    // specular
-    vec3 viewDir = normalize(u_viewPos - fragPos);
-    vec3 reflectDir = reflect(lightDir, norm);
-    float spec;
-    if (dotNormLight > 0.0) {
-        spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    }
-    else spec = 0.0f;
-    vec3 specular = light.specular * (spec * material.specular);  
-        
-    vec3 result = ambient + diffuse + specular;
+
 
     // key change block
-    if (uMode == 1) FragColor = vec4(result, 1.0);
-    else FragColor = vec4(lightingColor, 1.0);
+    if (uMode == 1) {
+    // ambient
+        vec3 rgb = material.diffuse;
+        vec3 ambient = light.ambient * rgb;
+        
+        // diffuse 
+        vec3 norm = normalize(normal);
+        vec3 lightDir = normalize(light.position - fragPos);
+        float dotNormLight = dot(norm, lightDir);
+        float diff = max(dotNormLight, 0.0);
+        vec3 diffuse = light.diffuse * diff * rgb;  
+        
+        // specular
+        vec3 viewDir = normalize(u_viewPos - fragPos);
+        vec3 reflectDir = reflect(lightDir, norm);
+        float spec;
+        if (dotNormLight > 0.0) {
+            spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+        }
+        else spec = 0.0f;
+        vec3 specular = light.specular * (spec * material.specular);  
+            
+        vec3 result = ambient + diffuse;// + specular;
+        FragColor = vec4(result, 1.0);
+    }
+    else {
+        //FragColor = vec4(normView * 0.5 + 0.5, 1.0); // color test
+        FragColor = vec4(lightingColor, 1.0);
+    }
 }

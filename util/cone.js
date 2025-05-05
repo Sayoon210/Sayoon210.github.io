@@ -59,14 +59,14 @@ export class Cone {
 
             // flat shading: 한 face(사각형)마다 동일한 법선.
             // face의 중앙 각도(midAngle) 기준으로 바깥쪽을 가리키는 (cos, 0, sin)
-            const midAngle = angle0 + angleStep * 0.5;
-            const nx = - (z0_bot - z1_bot);
-            const ny =  (z0_bot*x1_bot - x0_bot*z1_bot);
-            const nz = - (x1_bot - x0_bot);
-
+            // const midAngle = angle0 + angleStep * 0.5;
+            const nx =  z1_bot - z0_bot;
+            const ny =  x0_bot*z1_bot - z0_bot*x1_bot;
+            const nz =  x0_bot - x1_bot;
+            const len = Math.sqrt(nx * nx + nz * nz + ny * ny);
             // 이 사각형의 3개 정점에 동일한 법선 지정
             for (let k = 0; k < 3; k++) {
-                normals.push(nx, ny, nz);
+                normals.push(nx/len, ny/len, nz/len);
             }
 
             // 색상도 마찬가지로 4정점 동일
@@ -107,7 +107,11 @@ export class Cone {
      * Smooth Shading을 위해,
      * 각 정점별로 "y축에 수직인 방향 (x, 0, z)을 normalize하여 this.vertexNormals에 저장.
      */
+
+    // vertex => face normal들의 average를 담아놓는거가 smooth
     computeVertexNormals() {
+        const angleStep = (2 * Math.PI) / 32;
+        const midAngle = angleStep * 0.5;
         const vCount = this.vertices.length / 3;
         // 새로 계산된 스무스 노말을 담을 버퍼 (vertices와 동일 크기)
         this.vertexNormals = new Float32Array(this.vertices.length);
@@ -123,14 +127,14 @@ export class Cone {
         // );
 
         for (let i = 0; i < vCount; i++) {
-            const x = this.vertices[i * 3 + 0];
-            const y = this.vertices[i * 3 + 1]; // 여기서는 y는 노말 계산에 사용 X
-            const z = this.vertices[i * 3 + 2];
+            const x = this.vertices[i * 3 + 0] + Math.cos(midAngle);
+            const y = Math.abs(this.vertices[i * 3 + 1]);
+            const z = this.vertices[i * 3 + 2] + Math.sin(midAngle);
 
             // y축에 수직 -> (x, y, z)를 정규화
             const len = Math.sqrt(x * x + z * z + y * y);//(6/5)**0.5;//Math.sqrt(x * x + z * z + y * y);
             // (len == 0)이 되는 경우는 없지만, 혹시 대비
-            if (len > 0) {
+            if (len > 0 && i % 3 != 1) {
                 this.vertexNormals[i * 3 + 0] = x / len;
                 this.vertexNormals[i * 3 + 1] = y / len;
                 this.vertexNormals[i * 3 + 2] = z / len;
