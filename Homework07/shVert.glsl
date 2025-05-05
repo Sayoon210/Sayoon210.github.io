@@ -5,7 +5,7 @@ layout(location = 1) in vec3 a_normal;
 layout(location = 2) in vec4 a_color;
 layout(location = 3) in vec2 a_texCoord;
 
-flat out vec3 lightingColor; // resulting color at each vertex, to fragment shader
+out vec3 lightingColor; // resulting color at each vertex, to fragment shader
 
 uniform mat4 u_model;
 uniform mat4 u_view;
@@ -13,11 +13,6 @@ uniform mat4 u_projection;
 
 out vec3 fragPos;
 out vec3 normal;
-
-// vertex shader output:
-out vec3 normView;
-
-
 
 struct Material {
     vec3 diffuse;
@@ -54,17 +49,13 @@ void main() {
 
     // specular
     vec3 viewDir = normalize(u_viewPos - fragPos);
-    vec3 reflectDir = reflect(lightDir, norm);
-    float spec = 0.0; 
-    if (diff > 0.0) {
+    vec3 reflectDir = reflect(-lightDir, norm);
+    float spec = 0.0;
+    if (dotNormLight > 0.0) {
         spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     }
-    vec3 specular = light.specular * spec;
+    vec3 specular = light.specular * spec * material.specular;  
 
     // ambient + diffuse + specular
-    lightingColor = ambient + diffuse;    //specular; //ambient + diffuse + specular;
-
-    // in vertex shader:
-    // normView = normalize(mat3(transpose(inverse(u_model))) * a_normal);
-    // lightingColor = vec3(1.0, 0.0, 0.0); // pure red test
+    lightingColor = ambient + diffuse + specular;
 } 

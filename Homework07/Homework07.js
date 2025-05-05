@@ -1,35 +1,28 @@
 /*--------------------------------------------------------------------------------
-18_SmoothShading.js
+    Homework 07
 
-- Viewing a 3D unit cylinder at origin with perspective projection
-- Rotating the cylinder by ArcBall interface (by left mouse button dragging)
-- Keyboard controls:
-    - 'a' to switch between camera and model rotation modes in ArcBall interface
-    - 'r' to reset arcball
-    - 's' to switch to smooth shading
-    - 'f' to switch to flat shading
-- Applying Diffuse & Specular reflection using Flat/Smooth shading to the cylinder
+    <21조>
+    2020142149 김사윤
+    2021119047 한민석
+
+    // Fragment shader 내부의 u_Mode를 변경하여 최종 픽셀 출력을 
+    // Gouraud로 할지 (Vertex shader에서 계산한 결과를 그대로 반영)
+    // Phong으로 할지 (Fragment shader에서 lighting을 하나하나 계산) 결정
 ----------------------------------------------------------------------------------*/
 import { resizeAspectRatio, setupText, updateText, Axes } from '../util/util.js';
 import { Shader, readShaderFile } from '../util/shader.js';
 import { Cube } from '../util/cube.js';
 import { Arcball } from '../util/arcball.js';
-import { Cone } from '../util/cone.js';
+
+// 과제를 위한 cone.js 사용
+import { Cone } from './cone.js';
 
 const canvas = document.getElementById('glCanvas');
 const gl = canvas.getContext('webgl2');
 let shader;
-let shader2;
 let lampShader;
-let textOverlay;
 let textOverlay2;
 let textOverlay3;
-let textOverlay4;
-let textOverlay5;
-let textOverlay6;
-let textOverlay7;
-let textOverlay8;
-let textOverlay9;
 let isInitialized = false;
 
 let viewMatrix = mat4.create();
@@ -40,12 +33,12 @@ let arcBallMode = 'CAMERA';     // 'CAMERA' or 'MODEL'
 let shadingMode = 'FLAT';       // 'FLAT' or 'SMOOTH'
 let renderingMode = 'PHONG';
 
-const cylinder = new Cone(gl, 32);
+// cone
+const cone = new Cone(gl, 32);
 const lamp = new Cube(gl);
-const axes = new Axes(gl, 1.5); // create an Axes object with the length of axis 1.5
 
 const cameraPos = vec3.fromValues(0, 0, 3);
-const lightPos = vec3.fromValues(1.0, -0.2, 1.0);
+const lightPos = vec3.fromValues(1.0, 0.7, 1.0);
 const lightSize = vec3.fromValues(0.1, 0.1, 0.1);
 
 // Arcball object: initial distance 5.0, rotation sensitivity 2.0, zoom sensitivity 0.0005
@@ -78,38 +71,39 @@ function setupKeyboardEvents() {
             else {
                 arcBallMode = 'CAMERA';
             }
-            updateText(textOverlay, "arcball mode: " + arcBallMode);
+            console.log(arcBallMode);
+            updateText(textOverlay2, "arcball mode: " + arcBallMode);
         }
         else if (event.key == 'r') {
             arcball.reset();
             modelMatrix = mat4.create();
             arcBallMode = 'CAMERA';
-            updateText(textOverlay, "arcball mode: " + arcBallMode);
+            updateText(textOverlay2, "arcball mode: " + arcBallMode);
         }
         else if (event.key == 's') {
-            cylinder.copyVertexNormalsToNormals(); // smooth는 vertex 기반의 interpolation
-            cylinder.updateNormals();
+            cone.copyVertexNormalsToNormals();
+            cone.updateNormals();
             shadingMode = 'SMOOTH';
-            updateText(textOverlay2, "shading mode: " + shadingMode);
+            updateText(textOverlay3, "shading mode: " + shadingMode + ' (' + renderingMode + ')', 3);
             render();
         }
         else if (event.key == 'f') {
-            cylinder.copyFaceNormalsToNormals(); // flat은 face normal만 사용해서 계산
-            cylinder.updateNormals();
+            cone.copyFaceNormalsToNormals();
+            cone.updateNormals();
             shadingMode = 'FLAT';
-            updateText(textOverlay2, "shading mode: " + shadingMode);
+            updateText(textOverlay3, "shading mode: " + shadingMode + ' (' + renderingMode + ')', 3);
             render();
         }
         else if (event.key == 'g') {
-            renderingMode = 'GOURAUD'
-            ///shadingMode = 'GOURAUD';
-            updateText(textOverlay3, "rendering mode: " + renderingMode);
+            renderingMode = 'GOURAUD';
+            console.log(renderingMode);
+            updateText(textOverlay3, "shading mode: " + shadingMode + ' (' + renderingMode + ')', 3);
             render();
         }
         else if (event.key == 'p') {
-            renderingMode = 'PHONG'
-            //shadingMode = 'GAUSDIDSAO';
-            updateText(textOverlay3, "rendering mode: " + renderingMode);
+            renderingMode = 'PHONG';
+            console.log(renderingMode);
+            updateText(textOverlay3, "shading mode: " + shadingMode + ' (' + renderingMode + ')', 3);
             render();
         }
     });
@@ -125,32 +119,26 @@ function initWebGL() {
     canvas.height = 700;
     resizeAspectRatio(gl, canvas);
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(0.7, 0.8, 0.9, 1.0);
+    gl.clearColor(0.1, 0.1, 0.1, 1.0);
 
     return true;
 }
 
+// 각 shader에 Gouraud와 Phong을 왔다갔다 할 수 있도록 하였음
 async function initShader() {
     const vertexShaderSource = await readShaderFile('shVert.glsl');
     const fragmentShaderSource = await readShaderFile('shFrag.glsl');
-    return new Shader(gl, vertexShaderSource, fragmentShaderSource);
+    shader = new Shader(gl, vertexShaderSource, fragmentShaderSource);
 }
-
-// async function initShader2() {
-//     const vertexShaderSource = await readShaderFile('shVertGouraud.glsl');
-//     const fragmentShaderSource = await readShaderFile('shFragGouraud.glsl');
-//     return new Shader(gl, vertexShaderSource, fragmentShaderSource);
-// }
 
 async function initLampShader() {
     const vertexShaderSource = await readShaderFile('shLampVert.glsl');
     const fragmentShaderSource = await readShaderFile('shLampFrag.glsl');
-    return new Shader(gl, vertexShaderSource, fragmentShaderSource);
+    lampShader = new Shader(gl, vertexShaderSource, fragmentShaderSource);
 }
 
 function render() {
     // clear canvas
-    gl.clearColor(0.1, 0.1, 0.1, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST);
 
@@ -162,27 +150,29 @@ function render() {
         viewMatrix = arcball.getViewCamDistanceMatrix();
     }
 
-    shader.use(); 
-    // drawing the cylinder
-    if (renderingMode == 'PHONG') { 
-        shader.setInt('uMode', 1);
+    shader.use();
+    // 셰이더 변경 부분
+    // Fragment shader 내부의 u_Mode를 변경하여 최종 픽셀 출력을 
+    // Gouraud로 할지 (Vertex shader에서 계산한 결과를 그대로 반영)
+    // Phong으로 할지 (Fragment shader에서 lighting을 하나하나 계산) 결정
+    if (renderingMode == 'PHONG') {
+        shader.setInt('u_Mode', 1);
+        console.log(renderingMode);
     }
-    else if (renderingMode == 'GOURAUD') { 
-        shader.setInt('uMode', 0);
+    else if (renderingMode == 'GOURAUD') {
+        shader.setInt('u_Mode', 0);
+        console.log(renderingMode);
     }
     
     shader.setMat4('u_model', modelMatrix);
     shader.setMat4('u_view', viewMatrix);
     shader.setVec3('u_viewPos', cameraPos);
-    cylinder.draw(shader);
+    cone.draw(shader);
 
     // drawing the lamp
     lampShader.use();
     lampShader.setMat4('u_view', viewMatrix);
     lamp.draw(lampShader);
-
-    // drawing the axes (using the axes's shader: see util.js)
-    axes.draw(viewMatrix, projMatrix);
 
     // call the render function the next time for animation
     requestAnimationFrame(render);
@@ -195,7 +185,12 @@ async function main() {
         }
 
         // View transformation matrix (camera at cameraPos, invariant in the program)
-        mat4.translate(viewMatrix, viewMatrix, cameraPos);
+        mat4.lookAt(
+            viewMatrix,
+            cameraPos, // camera position
+            vec3.fromValues(0, 0, 0), // look at point
+            vec3.fromValues(0, 1, 0)  // up vector
+        );
 
         // Projection transformation matrix (invariant in the program)
         mat4.perspective(
@@ -207,16 +202,15 @@ async function main() {
         );
 
         // creating shaders
-        shader = await initShader();
-        // shader2 = await initShader2();
-        lampShader = await initLampShader();
+        await initShader();
+        await initLampShader();
 
         shader.use();
         shader.setMat4("u_projection", projMatrix);
 
         shader.setVec3("material.diffuse", vec3.fromValues(1.0, 0.5, 0.31));
         shader.setVec3("material.specular", vec3.fromValues(0.5, 0.5, 0.5));
-        shader.setFloat("material.shininess", 16);
+        shader.setFloat("material.shininess", 32);
 
         shader.setVec3("light.position", lightPos);
         shader.setVec3("light.ambient", vec3.fromValues(0.2, 0.2, 0.2));
@@ -226,20 +220,19 @@ async function main() {
 
         lampShader.use();
         lampShader.setMat4("u_projection", projMatrix);
-        const lampModelMatrix = mat4.create();
         mat4.translate(lampModelMatrix, lampModelMatrix, lightPos);
         mat4.scale(lampModelMatrix, lampModelMatrix, lightSize);
         lampShader.setMat4('u_model', lampModelMatrix);
 
-        textOverlay = setupText(canvas, "arcball mode: " + arcBallMode);
-        textOverlay2 = setupText(canvas, "shading mode: " + shadingMode, 2);
-        textOverlay3 = setupText(canvas, "rendering mode: " + renderingMode, 3);
-        textOverlay9 = setupText(canvas, "press 'a' to change arcball mode", 4);
-        textOverlay4 = setupText(canvas, "press 'r' to reset arcball", 5);
-        textOverlay5 = setupText(canvas, "press 's' to switch to smooth shading", 6);
-        textOverlay6 = setupText(canvas, "press 'f' to switch to flat shading", 7);
-        textOverlay7 = setupText(canvas, "press 'g' to switch to Gouraud rendering", 8);
-        textOverlay8 = setupText(canvas, "press 'p' to switch to Phong rendering", 9);
+        setupText(canvas, "Smooth Shading", 1);
+        textOverlay2 = setupText(canvas, "arcball mode: " + arcBallMode, 2);
+        textOverlay3 = setupText(canvas, "shading mode: " + shadingMode + ' (' + renderingMode + ')', 3);
+        setupText(canvas, "press 'a' to change arcball mode", 4);
+        setupText(canvas, "press 'r' to reset arcball", 5);
+        setupText(canvas, "press 's' to switch to smooth shading", 6);
+        setupText(canvas, "press 'f' to switch to flat shading", 7);
+        setupText(canvas, "press 'g' to switch to Gouraud rendering", 8);
+        setupText(canvas, "press 'p' to switch to Phong rendering", 9);
         setupKeyboardEvents();
 
         // call the render function the first time for animation

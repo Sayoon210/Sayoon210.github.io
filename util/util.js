@@ -56,7 +56,7 @@ export function updateText(overlay, text) {
 }
 
 export class Axes {
-    constructor(gl, length = 1.5) {
+    constructor(gl, length = 1.0) {
         this.gl = gl;
         this.length = length;
         

@@ -32,7 +32,7 @@ class Cube
 
 3) Vertex normals
     Each vertex in the same face has the same normal vector (flat shading)
-    The normal vector is the same as the face normal vector
+    The vertex normal vector is the same as the face normal vector
     front face: (0,0,1), right face: (1,0,0), top face: (0,1,0), 
     left face: (-1,0,0), bottom face: (0,-1,0), back face: (0,0,-1) 
 
@@ -55,8 +55,9 @@ class Cube
 6) Parameters:
     1] gl: WebGLRenderingContext
     2] options:
-        1> color: array of 4 floats (default: [0.8, 0.8, 0.8, 1.0 ])
+        -  color: array of 4 floats (default: [0.8, 0.8, 0.8, 1.0 ])
            in this case, all vertices have the same given color
+           ex) const cube = new Cube(gl, {color: [1.0, 0.0, 0.0, 1.0]}); (all red)
 
 7) Vertex shader: the location (0: position attrib (vec3), 1: normal attrib (vec3),
                             2: color attrib (vec4), and 3: texture coordinate attrib (vec2))
@@ -174,7 +175,8 @@ export class Cube {
         this.faceNormals = new Float32Array(72);
         this.faceNormals.set(this.normals);
 
-        // compute vertex normals 
+        // compute vertex normals (by averaging face normals)
+
         for (let i = 0; i < 24; i += 3) {
 
             let vn_x = (this.normals[this.sameVertices[i]*3] + 
@@ -222,6 +224,8 @@ export class Cube {
         gl.bindVertexArray(this.vao);
 
         // VBO에 데이터 복사
+        // gl.bufferSubData(target, offset, data): target buffer의 
+        //     offset 위치부터 data를 copy (즉, data를 buffer의 일부에만 copy)
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
         gl.bufferData(gl.ARRAY_BUFFER, totalSize, gl.STATIC_DRAW);
         gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.vertices);

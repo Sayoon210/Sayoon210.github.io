@@ -122,6 +122,7 @@ export class Shader {
 
     setInt(name, value) {
         this.gl.uniform1i(this.gl.getUniformLocation(this.program, name), value);
+        //console.log(name + ' | ' + value);
     }
 
     setFloat(name, value) {
