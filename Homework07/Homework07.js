@@ -34,7 +34,7 @@ let shadingMode = 'FLAT';       // 'FLAT' or 'SMOOTH'
 let renderingMode = 'PHONG';
 
 // cone
-const cone = new Cone(gl, 180);
+const cone = new Cone(gl, 32);
 const lamp = new Cube(gl);
 
 const cameraPos = vec3.fromValues(0, 0, 3);
