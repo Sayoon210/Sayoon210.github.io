@@ -1,3 +1,38 @@
+/*--------------------------------------------------------------------------------
+Homework 09
+
+<21조> - 1인 조입니다.
+2020142149 김사윤
+
+1. sun은 아래와 같이 point light + emmision으로 발광 효과를 주었음.
+    const color = 0xFFFFFF; // 빛의 색상 (흰색 또는 노란색 계열)
+    const intensity = 1000; // 빛의 강도 (조절해서 밝기를 설정)
+    const light = new THREE.PointLight(color, intensity);
+    light.position.set(0, 0, 0); // 구의 중심에 위치
+    light.castShadow = true;
+    scene.add(light);
+    const sunMaterial = new THREE.MeshStandardMaterial({
+        color: 0xFFCC00,
+        emissive: 0xFFCC00, // 발광 색상 (더 밝은 노란색)
+        emissiveIntensity: 3 // 발광 강도 (기본값은 1)
+    });
+
+2. GUI는 folder를 통해 분리하였으며 control(최상위 default folder) 내부에 전부 분리되어 위치하였음.
+
+3. ortbit과 stat을 추가함.
+
+4. orbit rotation은 아래와 같이 pivot dummy object를 각 행성마다 추가해 parent로 지정하고 rotation을 걸어주었음.
+    const pivotMercury = new THREE.Object3D(); // rotation의 중심이 될 parent object (dummy)
+    pivotMercury.position.set(0, 0, 0);
+    scene.add(pivotMercury);
+    pivotMercury.add(Mercury);
+
+5. rotation은 gui에서 값을 변경하여 아래와 같이 반영됨.
+    Mercury.rotation.y += mercuryGUI.rotationSpeed;
+    pivotMercury.rotation.y += mercuryGUI.orbitSpeed;
+
+----------------------------------------------------------------------------------*/
+
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import Stats from 'three/addons/libs/stats.module.js';
@@ -28,7 +63,7 @@ let orbitControls = new OrbitControls(camera, renderer.domElement);
 orbitControls.enableDamping = true;
 
 // add subtle ambient lighting
-const ambientLight = new THREE.AmbientLight(0xDDDDDD);
+const ambientLight = new THREE.AmbientLight(0x7D7D7D);
 scene.add(ambientLight);
 
 const textureLoader = new THREE.TextureLoader();
@@ -154,7 +189,7 @@ const controls = new function () {
             scene.remove(camera);
             camera = null; // 기존의 camera 제거    
             // OrthographicCamera(left, right, top, bottom, near, far)
-            camera = new THREE.OrthographicCamera(window.innerWidth / -16, 
+            camera = new THREE.OrthographicCamera(window.innerWidth / -16,
                 window.innerWidth / 16, window.innerHeight / 16, window.innerHeight / -16, -200, 500);
             camera.position.x = 120;
             camera.position.y = 60;
@@ -167,7 +202,7 @@ const controls = new function () {
             this.perspective = "Orthographic";
         } else {
             scene.remove(camera);
-            camera = null; 
+            camera = null;
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.x = 120;
             camera.position.y = 60;
