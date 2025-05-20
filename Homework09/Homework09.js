@@ -63,7 +63,7 @@ let orbitControls = new OrbitControls(camera, renderer.domElement);
 orbitControls.enableDamping = true;
 
 // add subtle ambient lighting
-const ambientLight = new THREE.AmbientLight(0x7D7D7D);
+const ambientLight = new THREE.AmbientLight(0xCFCFCF);
 scene.add(ambientLight);
 
 const textureLoader = new THREE.TextureLoader();
