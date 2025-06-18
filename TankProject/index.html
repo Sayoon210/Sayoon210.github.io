@@ -1,14 +1,29 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tank Game</title>
     <style>
-        body {
-            margin: 0;
+        body { margin: 0; overflow: hidden; } /* 기본 여백 제거 및 스크롤 방지 */
+        canvas { display: block; } /* 캔버스 하단 여백 제거 */
+
+        /* 텍스트 오버레이 스타일 */
+        #instructions {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white; /* 텍스트 색상 */
+            font-family: Arial, sans-serif; /* 글꼴 */
+            font-size: 16px; /* 글꼴 크기 */
+            background-color: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+            padding: 10px;
+            border-radius: 5px;
+            line-height: 1.6; /* 줄 간격 */
+            z-index: 10; /* 캔버스 위에 오도록 */
         }
     </style>
-    <!-- CDN (Content Delivery Network)을 사용, importmap 설정 -->
+        <!-- CDN (Content Delivery Network)을 사용, importmap 설정 -->
     <script type="importmap">
     {
         "imports": {
@@ -20,8 +35,9 @@
     <script type="module" src="./util.js"></script>
     <script type="module" src="./main.js"></script>
 </head>
-
 <body>
-</body>
+    <div id="instructions"></div>
 
+    <script type="module" src="./main.js"></script>
+</body>
 </html>
